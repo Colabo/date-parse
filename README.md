@@ -4,6 +4,10 @@ date-parse
 JS Date parse extension that not only understands more formats, but also converts
 relative dates (like "20 days ago") into a timestamp.
 
+License
+--------
+[Apache 2.0](http://opensource.org/licenses/Apache-2.0)
+
 
 Usage
 ------
