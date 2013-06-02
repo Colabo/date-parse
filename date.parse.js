@@ -164,7 +164,7 @@ Date.parse = (function() {
 	var _ = function(str) {
 		var d = origParse(str);
 		if (isNaN(d) && typeof (str) == "string") {
-			d = parseDate(str) || parseRelativeDate(str);
+			d = parseDate(str) || parseRelativeDate(str) || NaN;
 		}
 		return d;
 	};
