@@ -10,25 +10,29 @@
 Date.parse = (function() {
 
 	var MONTH_GROUP = "(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|september|oct|october|nov|november|dec|december)";
-	var DATE_PATTERNS = new Array({
-		regex : new RegExp("^(\\d+) " + MONTH_GROUP + " (\\d+)$", "i"),
-		idx : {
-			day : 1,
-			month : 2,
-			year : 3
-		}
-	}, {
-		regex : new RegExp("^(\\d+) " + MONTH_GROUP + "$", "i"),
-		idx : {
-			day : 1,
-			month : 2
-		}
-	}, {
-		regex : /^(sun|sunday|mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday)$/i,
-		idx : {
-			weekday : 1
-		}
-	});
+	var DATE_PATTERNS = new Array(
+			{
+				regex : new RegExp("^(\\d+) " + MONTH_GROUP + " (\\d+)$", "i"),
+				idx : {
+					day : 1,
+					month : 2,
+					year : 3
+				}
+			},
+			{
+				regex : new RegExp("^(\\d+) " + MONTH_GROUP + "$", "i"),
+				idx : {
+					day : 1,
+					month : 2
+				}
+			},
+			{
+				regex : /^(previous|next)?\s*(sun|sunday|mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday)$/i,
+				idx : {
+					shift : 1,
+					weekday : 2
+				}
+			});
 
 	var makeFullYear = function(year) {
 		if (typeof (year) == "string") {
@@ -98,6 +102,18 @@ Date.parse = (function() {
 		return WEEKDAY_IDX[weekday.toLowerCase()];
 	};
 
+	var getShift = function(str) {
+		if (typeof (str) == "string") {
+			if (str.toLowerCase() == "next") {
+				return 1;
+			}
+			if (str.toLowerCase() == "previous") {
+				return -1;
+			}
+		}
+		return 0;
+	};
+
 	var parseDate = function(str) {
 		for ( var i = 0; i < DATE_PATTERNS.length; ++i) {
 			var p = DATE_PATTERNS[i];
@@ -105,10 +121,11 @@ Date.parse = (function() {
 			if (m = str.match(p.regex)) {
 				var d = new Date();
 				if (p.idx.weekday) {
+					var shift = p.idx.shift ? getShift(m[p.idx.shift]) * 7 : 0;
 					var currentWeekday = new Date().getDay();
 					var weekday = getWeekdayIndex(m[p.idx.weekday]);
 					var diff = currentWeekday - weekday;
-					d.setDate(d.getDate() - diff);
+					d.setDate(d.getDate() - diff + shift);
 				} else {
 					if (p.idx.year) {
 						d.setFullYear(makeFullYear(m[p.idx.year]));
