@@ -140,7 +140,7 @@ Date.parse = (function() {
 						d.setSeconds(parseInt(m[p.idx.second], 10));
 					}
 				}
-				return d;
+				return d.getTime();
 			}
 		}
 		return null;
