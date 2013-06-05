@@ -12,26 +12,20 @@ Date.parse = (function() {
 	var MONTH_GROUP = "(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|september|oct|october|nov|november|dec|december)";
 	var DATE_PATTERNS = new Array(
 			{
-				regex : new RegExp("^(\\d+) " + MONTH_GROUP + " (\\d+)$", "i"),
-				idx : {
-					day : 1,
-					month : 2,
-					year : 3
-				}
+				regex : new RegExp("^(\\d+)\\s+" + MONTH_GROUP + "\\s+(\\d+)$", "i"),
+				idx : { day : 1, month : 2, year : 3 }
 			},
 			{
-				regex : new RegExp("^(\\d+) " + MONTH_GROUP + "$", "i"),
-				idx : {
-					day : 1,
-					month : 2
-				}
+				regex : new RegExp("^" + MONTH_GROUP + "\\s+(\\d+)\\s*,\\s*(\\d+)$", "i"),
+				idx : { day : 2, month : 1, year : 3 }
+			},
+			{
+				regex : new RegExp("^(\\d+)\\s+" + MONTH_GROUP + "$", "i"),
+				idx : { day : 1, month : 2 }
 			},
 			{
 				regex : /^(previous|next)?\s*(sun|sunday|mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday)$/i,
-				idx : {
-					shift : 1,
-					weekday : 2
-				}
+				idx : { shift : 1, 	weekday : 2 }
 			});
 
 	var makeFullYear = function(year) {
@@ -113,7 +107,7 @@ Date.parse = (function() {
 		}
 		return 0;
 	};
-
+	
 	var parseDate = function(str) {
 		for ( var i = 0; i < DATE_PATTERNS.length; ++i) {
 			var p = DATE_PATTERNS[i];
@@ -136,6 +130,15 @@ Date.parse = (function() {
 					if (p.idx.day) {
 						d.setDate(parseInt(m[p.idx.day], 10));
 					}
+					if (p.idx.hour) {
+						d.setHours(parseInt(m[p.idx.hour], 10));
+					}
+					if (p.idx.minute) {
+						d.setMinutes(parseInt(m[p.idx.minute], 10));
+					}
+					if (p.idx.second) {
+						d.setSeconds(parseInt(m[p.idx.second], 10));
+					}
 				}
 				return d;
 			}
@@ -144,16 +147,18 @@ Date.parse = (function() {
 	};
 
 	// Relative date patterns:
-	var REL_NOW_P = /^(?:just now|now|right now)$/i;
-	var REL_AGO_P = /^(.*?)\s+(?:ago|from now)$/i;
-	var REL_SEC_P = /^(\d+)(?:s|sec| seconds)$/i;
-	var REL_MIN_P = /^(\d+)(?:m|min| minutes)$/i;
-	var REL_HOUR_P = /^(\d+)(?:h| hours)$/i;
-	var REL_DAY_P = /^(\d+)(?:d| days)$/i;
-	var REL_MONTH_P = /^(\d+)(?: months)$/i;
-	var REL_YEAR_P = /^(\d+)(?:y| years)$/i;
+	var REL_NOW_P = /^(?:just now|now|right\s+now)$/i;
+	var REL_AGO_P = /^(.*?)\s+(?:ago|from\s+now)$/i;
+	var REL_SEC_P = /^(\d+)(?:s|sec|\s+seconds)$/i;
+	var REL_MIN_P = /^(\d+)(?:m|min|\s+minutes)$/i;
+	var REL_HOUR_P = /^(\d+)(?:h|\s+hours)$/i;
+	var REL_DAY_P = /^(\d+)(?:d|\s+days)$/i;
+	var REL_MONTH_P = /^(\d+)(?:\s+months)$/i;
+	var REL_YEAR_P = /^(\d+)(?:y|\s+years)$/i;
 
 	var parseRelativeDate = function(str) {
+		str = str.trim();
+
 		var d = null;
 		if (str.match(REL_NOW_P)) {
 			d = new Date().getTime();
@@ -179,11 +184,10 @@ Date.parse = (function() {
 
 	var origParse = Date.parse;
 	var _ = function(str) {
-		var d = origParse(str);
-		if (isNaN(d) && typeof (str) == "string") {
-			d = parseDate(str) || parseRelativeDate(str) || NaN;
+		if (typeof (str) != "string") {
+			return NaN;
 		}
-		return d;
+		return parseDate(str) || parseRelativeDate(str) || origParse(str);
 	};
 
 	return _;
