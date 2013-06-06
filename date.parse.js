@@ -28,6 +28,10 @@ Date.parse = (function() {
 				idx : { day : 1, month : 2 }
 			},
 			{
+				regex : /^(\d+\:\d+(?::\d+)?(?:\s*am|\s*pm))$/i,
+				idx : { hours: 1 }
+			},
+			{
 				regex : /^(previous|next)?\s*(sun|sunday|mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday)$/i,
 				idx : { shift : 1, 	weekday : 2 }
 			});
