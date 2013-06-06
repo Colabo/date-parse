@@ -24,6 +24,10 @@ Date.parse = (function() {
 				idx : { day : 1, month : 2 }
 			},
 			{
+				regex : new RegExp("^(\\d+)\\s+" + MONTH_GROUP + "$", "i"),
+				idx : { day : 1, month : 2 }
+			},
+			{
 				regex : /^(previous|next)?\s*(sun|sunday|mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday)$/i,
 				idx : { shift : 1, 	weekday : 2 }
 			});
@@ -108,6 +112,34 @@ Date.parse = (function() {
 		return 0;
 	};
 	
+	var parseHours = function(date, hours) {
+		var m;
+		if (m = hours.match(/^(\d+):(\d+)\s*am$/i)) {
+			var hr = parseInt(m[1], 10);
+			var min = parseInt(m[2], 10);
+			if (hr == 12) {
+				hr = hr - 12;
+			}
+			date.setHours(hr, min);
+		} else if (m = hours.match(/^(\d+):(\d+)\s*pm$/i)) {
+			var hr = parseInt(m[1], 10);
+			var min = parseInt(m[2], 10);
+			if (hr < 12) {
+				hr = hr + 12;
+			}
+			date.setHours(hr, min);
+		} else if (m = hours.match(/^(\d+):(\d+)$/)) {
+			var hr = parseInt(m[1], 10);
+			var min = parseInt(m[2], 10);
+			date.setHours(hr, min);
+		} else if (m = hours.match(/^(\d+):(\d+):(\d+)$/)) {
+			var hr = parseInt(m[1], 10);
+			var min = parseInt(m[2], 10);
+			var sec = parseInt(m[3], 10);
+			date.setHours(hr, min, sec);
+		}
+	};
+	
 	var parseDate = function(str) {
 		for ( var i = 0; i < DATE_PATTERNS.length; ++i) {
 			var p = DATE_PATTERNS[i];
@@ -129,6 +161,9 @@ Date.parse = (function() {
 					}
 					if (p.idx.day) {
 						d.setDate(parseInt(m[p.idx.day], 10));
+					}
+					if (p.idx.hours) {
+						parseHours(d, m[p.idx.hours]);
 					}
 					if (p.idx.hour) {
 						d.setHours(parseInt(m[p.idx.hour], 10));
@@ -155,6 +190,7 @@ Date.parse = (function() {
 	var REL_DAY_P = /^(\d+)(?:d|\s+days)$/i;
 	var REL_MONTH_P = /^(\d+)(?:\s+months)$/i;
 	var REL_YEAR_P = /^(\d+)(?:y|\s+years)$/i;
+	var REL_YTT_P = /^(yesterday|today|tomorrow)\s*(?:at)?\s*(\d+\:\d+(?::\d+)?(?:\s*am|\s*pm)?)?$/i;
 
 	var parseRelativeDate = function(str) {
 		str = str.trim();
@@ -164,19 +200,33 @@ Date.parse = (function() {
 			d = new Date().getTime();
 		} else {
 			var m;
-			var t = (m = str.match(REL_AGO_P)) ? m[1] : str;
-			if (m = t.match(REL_SEC_P)) {
-				d = new Date().getTime() - m[1] * 1000;
-			} else if (m = t.match(REL_MIN_P)) {
-				d = new Date().getTime() - m[1] * 60000;
-			} else if (m = t.match(REL_HOUR_P)) {
-				d = new Date().getTime() - m[1] * 3600000;
-			} else if (m = t.match(REL_DAY_P)) {
-				d = new Date().getTime() - m[1] * 86400000;
-			} else if (m = t.match(REL_MONTH_P)) {
-				d = new Date().getTime() - m[1] * 2.62974e9;
-			} else if (m = t.match(REL_YEAR_P)) {
-				d = new Date().getTime() - m[1] * 3.15569e10;
+			if (m = str.match(REL_YTT_P)) {
+				d = new Date();
+				if (m[1].toLowerCase() == "yesterday") {
+					d.setDate(d.getDate()-1);
+				}
+				else if (m[1].toLowerCase() == "tomorrow") {
+					d.setDate(d.getDate()+1);
+				}
+				if (m[2]) {
+					parseHours(d, m[2]);
+				}
+				d = d.getTime();
+			} else {
+				var t = (m = str.match(REL_AGO_P)) ? m[1] : str;
+				if (m = t.match(REL_SEC_P)) {
+					d = new Date().getTime() - m[1] * 1000;
+				} else if (m = t.match(REL_MIN_P)) {
+					d = new Date().getTime() - m[1] * 60000;
+				} else if (m = t.match(REL_HOUR_P)) {
+					d = new Date().getTime() - m[1] * 3600000;
+				} else if (m = t.match(REL_DAY_P)) {
+					d = new Date().getTime() - m[1] * 86400000;
+				} else if (m = t.match(REL_MONTH_P)) {
+					d = new Date().getTime() - m[1] * 2.62974e9;
+				} else if (m = t.match(REL_YEAR_P)) {
+					d = new Date().getTime() - m[1] * 3.15569e10;
+				}
 			}
 		}
 		return d;
