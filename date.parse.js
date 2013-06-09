@@ -188,12 +188,12 @@ Date.parse = (function() {
 	// Relative date patterns:
 	var REL_NOW_P = /^(?:just now|now|right\s+now)$/i;
 	var REL_AGO_P = /^(.*?)\s+(?:ago|from\s+now)$/i;
-	var REL_SEC_P = /^(\d+)(?:s|sec|\s+seconds)$/i;
-	var REL_MIN_P = /^(\d+)(?:m|min|\s+minutes)$/i;
-	var REL_HOUR_P = /^(\d+)(?:h|\s+hours)$/i;
-	var REL_DAY_P = /^(\d+)(?:d|\s+days)$/i;
-	var REL_MONTH_P = /^(\d+)(?:\s+months)$/i;
-	var REL_YEAR_P = /^(\d+)(?:y|\s+years)$/i;
+	var REL_SEC_P = /^(\d+)(?:s|sec|\s+seconds?)$/i;
+	var REL_MIN_P = /^(\d+)(?:m|min|\s+minutes?)$/i;
+	var REL_HOUR_P = /^(\d+)(?:h|\s+hours?)$/i;
+	var REL_DAY_P = /^(\d+)(?:d|\s+days?)$/i;
+	var REL_MONTH_P = /^(\d+)(?:\s+months?)$/i;
+	var REL_YEAR_P = /^(\d+)(?:y|\s+years?)$/i;
 	var REL_YTT_P = /^(yesterday|today|tomorrow)\s*(?:at)?\s*(\d+\:\d+(?::\d+)?(?:\s*am|\s*pm)?)?$/i;
 
 	var parseRelativeDate = function(str) {
