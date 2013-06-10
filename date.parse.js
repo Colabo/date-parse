@@ -161,7 +161,11 @@ Date.parse = (function() {
 						d.setFullYear(makeFullYear(m[p.idx.year]));
 					}
 					if (p.idx.month) {
-						d.setMonth(getMonthIndex(m[p.idx.month]));
+						var monthIdx = getMonthIndex(m[p.idx.month]);
+						if (!p.idx.year && monthIdx > d.getMonth()) {
+							d.setFullYear(d.getFullYear() - 1);
+						}
+						d.setMonth(monthIdx);
 					}
 					if (p.idx.day) {
 						d.setDate(parseInt(m[p.idx.day], 10));
