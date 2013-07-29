@@ -7,33 +7,59 @@
 // License: Apache 2.0 (http://opensource.org/licenses/Apache-2.0)
 //
 
-Date.parse = (function() {
+(function() {
 
 	var MONTH_GROUP = "(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|september|oct|october|nov|november|dec|december)";
 	var DATE_PATTERNS = new Array(
 			{
 				regex : new RegExp("^(\\d+)\\s+" + MONTH_GROUP + "\\s+(\\d+)$", "i"),
-				idx : { day : 1, month : 2, year : 3 }
+				idx : {
+					day : 1,
+					month : 2,
+					year : 3
+				}
 			},
 			{
 				regex : new RegExp("^" + MONTH_GROUP + "\\s+(\\d+)\\s*,\\s*(\\d+)$", "i"),
-				idx : { day : 2, month : 1, year : 3 }
+				idx : {
+					day : 2,
+					month : 1,
+					year : 3
+				}
 			},
 			{
 				regex : new RegExp("^(\\d+)\\s+" + MONTH_GROUP + "$", "i"),
-				idx : { day : 1, month : 2 }
+				idx : {
+					day : 1,
+					month : 2
+				}
 			},
 			{
 				regex : new RegExp("^(\\d+)\\s+" + MONTH_GROUP + "$", "i"),
-				idx : { day : 1, month : 2 }
+				idx : {
+					day : 1,
+					month : 2
+				}
 			},
 			{
 				regex : /^(\d+\:\d+(?::\d+)?(?:\s*am|\s*pm))$/i,
-				idx : { hours: 1 }
+				idx : {
+					hours : 1
+				}
 			},
 			{
 				regex : /^(previous|next)?\s*(sun|sunday|mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday)$/i,
-				idx : { shift : 1, 	weekday : 2 }
+				idx : {
+					shift : 1,
+					weekday : 2
+				}
+			}, {
+				regex : /^(\d+)\.(\d+)\.(\d+)$/,
+				idx : {
+					month : 1,
+					day : 2,
+					year : 3
+				}
 			});
 
 	var makeFullYear = function(year) {
@@ -76,7 +102,10 @@ Date.parse = (function() {
 	};
 	var getMonthIndex = function(month) {
 		if (typeof (month) == "number") {
-			return month;
+			return month - 1;
+		}
+		if (!isNaN(parseInt(month, 10))) {
+			return parseInt(month, 10) - 1;
 		}
 		return MONTH_IDX[month.toLowerCase()];
 	};
@@ -115,7 +144,7 @@ Date.parse = (function() {
 		}
 		return 0;
 	};
-	
+
 	var parseHours = function(date, hours) {
 		var m;
 		if (m = hours.match(/^(\d+):(\d+)\s*am$/i)) {
@@ -143,7 +172,7 @@ Date.parse = (function() {
 			date.setHours(hr, min, sec);
 		}
 	};
-	
+
 	var parseDate = function(str) {
 		for ( var i = 0; i < DATE_PATTERNS.length; ++i) {
 			var p = DATE_PATTERNS[i];
@@ -211,10 +240,9 @@ Date.parse = (function() {
 			if (m = str.match(REL_YTT_P)) {
 				d = new Date();
 				if (m[1].toLowerCase() == "yesterday") {
-					d.setDate(d.getDate()-1);
-				}
-				else if (m[1].toLowerCase() == "tomorrow") {
-					d.setDate(d.getDate()+1);
+					d.setDate(d.getDate() - 1);
+				} else if (m[1].toLowerCase() == "tomorrow") {
+					d.setDate(d.getDate() + 1);
 				}
 				if (m[2]) {
 					parseHours(d, m[2]);
@@ -240,13 +268,28 @@ Date.parse = (function() {
 		return d;
 	};
 
-	var origParse = Date.parse;
-	var _ = function(str) {
-		if (typeof (str) != "string") {
-			return NaN;
-		}
-		return parseDate(str) || parseRelativeDate(str) || origParse(str);
-	};
+	Date.parse = (function() {
+		var origParse = Date.parse;
+		var _ = function(str) {
+			// Check whether it's timestamp:
+			if (!isNaN(str)) {
+				var timestamp = parseInt(str, 10);
+				if (timestamp < 315525600000) {
+					timestamp = timestamp * 1000; // Most probably it's Unix timestamp
+				}
+				return timestamp;
+			}
+			if (typeof (str) != "string") {
+				return NaN;
+			}
+			return parseDate(str) || parseRelativeDate(str) || origParse(str);
+		};
+		return _;
+	})();
 
-	return _;
+	Date.isRelative = (function() {
+		return function(str) {
+			return typeof (str) == "string" && parseRelativeDate(str) !== null;
+		};
+	})();
 })();
